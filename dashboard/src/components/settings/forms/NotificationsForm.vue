@@ -142,8 +142,11 @@ const dirty = computed(
 const digestTime = computed(() =>
 	digestHour.value == null ? '' : formatHour(digestHour.value),
 )
+const visibleCategories = computed(() =>
+	CATEGORIES.filter(({ key }) => eventsOf(key).length),
+)
 const usesDigest = computed(() =>
-	CATEGORIES.some(
+	visibleCategories.value.some(
 		({ key }) => state[key].email && state[key].frequency !== 'Instant',
 	),
 )
@@ -236,7 +239,7 @@ const notificationSettingsLoadErrorTitle = __(
 			<div
 				class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
 			>
-				<div v-for="cat in CATEGORIES" :key="cat.key">
+				<div v-for="cat in visibleCategories" :key="cat.key">
 					<SettingsRow :title="cat.label" :description="cat.hint">
 						<div class="flex items-center gap-6">
 							<span class="flex w-12 justify-center">
@@ -300,10 +303,7 @@ const notificationSettingsLoadErrorTitle = __(
 									Boolean(event.is_critical) ||
 									!state[cat.key].muted.includes(event.event_type)
 								"
-								:disabled="
-									Boolean(event.is_critical) ||
-									!event.can_receive
-								"
+								:disabled="Boolean(event.is_critical)"
 								:aria-label="__('Email for {0}', [event.title])"
 								@update:model-value="
 									toggleEvent(cat.key, event.event_type, $event)
